@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<head>
+	<script type="text/javascript" src="object-assign.js"></script>
+	<script type="text/javascript" src="jquery-1.9.1.min.js"></script>
+	<script type="text/javascript" src="web3/dist/web3.js"></script>
+	<script type="text/javascript" src="ethereumjs/dist/ethereumjs-tx/ethereumjs-tx-1.3.3.js"></script>
+</head>
+<style type="text/css">
+	.w100{
+		width: 100%;
+	}
+	.mt10{
+		margin-top: 10px;
+	}
+	.box{
+		padding:15px;
+		border-radius: 5px;
+		border: 1px solid gray;
+		margin-right: 10px;
+		margin-left: 10px;
+	}
+	h3{
+		margin-top: 0px;
+		margin-bottom : 3px;
+	}
+</style>
+<script type="text/javascript">
+
+$(function () {
+
+	var AnyWearABI      = [ { "constant": true, "inputs": [], "name": "name", "outputs": [ { "name": "", "type": "string" } ], "payable": false, "stateMutability": "view", "type": "function" }, { "constant": false, "inputs": [ { "name": "_spender", "type": "address" }, { "name": "_value", "type": "uint256" } ], "name": "approve", "outputs": [ { "name": "success", "type": "bool" } ], "payable": false, "stateMutability": "nonpayable", "type": "function" }, { "constant": true, "inputs": [], "name": "totalSupply", "outputs": [ { "name": "", "type": "uint256" } ], "payable": false, "stateMutability": "view", "type": "function" }, { "constant": false, "inputs": [ { "name": "_from", "type": "address" }, { "name": "_to", "type": "address" }, { "name": "_value", "type": "uint256" } ], "name": "transferFrom", "outputs": [ { "name": "success", "type": "bool" } ], "payable": false, "stateMutability": "nonpayable", "type": "function" }, { "constant": true, "inputs": [], "name": "decimals", "outputs": [ { "name": "", "type": "uint8" } ], "payable": false, "stateMutability": "view", "type": "function" }, { "constant": false, "inputs": [ { "name": "_value", "type": "uint256" } ], "name": "burn", "outputs": [ { "name": "success", "type": "bool" } ], "payable": false, "stateMutability": "nonpayable", "type": "function" }, { "constant": true, "inputs": [ { "name": "", "type": "address" } ], "name": "balanceOf", "outputs": [ { "name": "", "type": "uint256" } ], "payable": false, "stateMutability": "view", "type": "function" }, { "constant": false, "inputs": [ { "name": "_from", "type": "address" }, { "name": "_value", "type": "uint256" } ], "name": "burnFrom", "outputs": [ { "name": "success", "type": "bool" } ], "payable": false, "stateMutability": "nonpayable", "type": "function" }, { "constant": true, "inputs": [], "name": "symbol", "outputs": [ { "name": "", "type": "string" } ], "payable": false, "stateMutability": "view", "type": "function" }, { "constant": false, "inputs": [ { "name": "_to", "type": "address" }, { "name": "_value", "type": "uint256" } ], "name": "transfer", "outputs": [ { "name": "success", "type": "bool" } ], "payable": false, "stateMutability": "nonpayable", "type": "function" }, { "constant": false, "inputs": [ { "name": "_spender", "type": "address" }, { "name": "_value", "type": "uint256" }, { "name": "_extraData", "type": "bytes" } ], "name": "approveAndCall", "outputs": [ { "name": "success", "type": "bool" } ], "payable": false, "stateMutability": "nonpayable", "type": "function" }, { "constant": true, "inputs": [ { "name": "", "type": "address" }, { "name": "", "type": "address" } ], "name": "allowance", "outputs": [ { "name": "", "type": "uint256" } ], "payable": false, "stateMutability": "view", "type": "function" }, { "inputs": [ { "name": "initialSupply", "type": "uint256", "index": 0, "typeShort": "uint", "bits": "256", "displayName": "initial Supply", "template": "elements_input_uint", "value": "100000000" }, { "name": "tokenName", "type": "string", "index": 1, "typeShort": "string", "bits": "", "displayName": "token Name", "template": "elements_input_string", "value": "EXCHAIN" }, { "name": "tokenSymbol", "type": "string", "index": 2, "typeShort": "string", "bits": "", "displayName": "token Symbol", "template": "elements_input_string", "value": "EXC" } ], "payable": false, "stateMutability": "nonpayable", "type": "constructor" }, { "anonymous": false, "inputs": [ { "indexed": true, "name": "from", "type": "address" }, { "indexed": true, "name": "to", "type": "address" }, { "indexed": false, "name": "value", "type": "uint256" } ], "name": "Transfer", "type": "event" }, { "anonymous": false, "inputs": [ { "indexed": true, "name": "_owner", "type": "address" }, { "indexed": true, "name": "_spender", "type": "address" }, { "indexed": false, "name": "_value", "type": "uint256" } ], "name": "Approval", "type": "event" }, { "anonymous": false, "inputs": [ { "indexed": true, "name": "from", "type": "address" }, { "indexed": false, "name": "value", "type": "uint256" } ], "name": "Burn", "type": "event" } ];
+	var contractAddress = "0x65fc8cc3dd6100e4f24c964d0c117805bbdbdcbd"; 
+	var web3 			= new Web3(new Web3.providers.HttpProvider('https://ropsten.infura.io/QWMtYHudqUPNKFVZF2nv'));
+	var AnyWear 		= web3.eth.contract(AnyWearABI).at(contractAddress); 
+
+	// 잔액조회버튼 클릭 이벤트
+	$("#balanceOf").on("click", function(){
+
+		var walletAddr = $.trim($("#exchain").find("[name=walletAddr]").val());
+		
+		if (walletAddr == "") 
+		{			
+			alert("잔액조회할 지갑주소를 입력해 주세요");
+			return false;
+		}
+
+		$("#ethBalance").text("ETH");
+		$("#excBalance").text("EXC");
+
+		getCoinBalance(walletAddr);
+			
+	});
+		
+	// 토큰전송 클릭 이벤트
+	$("#transfer").on("click", function(){
+	
+		var _sellWalletAddr = $.trim($("#exchain").find("[name=sellWalletAddr]").val());
+		var _buyWalletAddr  = $.trim($("#exchain").find("[name=buyWalletAddr]").val());
+		var _amount  		= $.trim($("#exchain").find("[name=amount]").val());
+		var _privateKey     = $.trim($("#exchain").find("[name=privateKey]").val());
+		var _coinName       = $("input:radio[name=coin]:checked").val()
+
+		if(_sellWalletAddr == "")
+		{
+			alert("보내는사람 지갑주소를 입력해 주세요.");
+			return false;
+		}
+
+		if(_buyWalletAddr == "")
+		{
+			alert("받는사람 지갑주소를 입력해 주세요.");
+			return false;
+		}
+
+		if(_sellWalletAddr == _buyWalletAddr)
+		{
+			alert("보내는사람 지갑주소와 받는사람 지갑주소가 동일합니다.");
+			return false;
+		}
+		
+		if(_privateKey == "")
+		{
+			alert("지갑 보안키를 입력해 주세요.");
+			return false;
+		}
+		
+		if(_amount == "")
+		{
+			alert("전송할 코인 수량을 입력해 주세요.");
+			return false;
+		}
+
+		var _param = new Object();
+		_param._sellWalletAddr 	= _sellWalletAddr;
+		_param._buyWalletAddr 	= _buyWalletAddr;
+		_param._amount 			= _amount;
+		_param._privateKey 		= _privateKey;
+		
+		if(_coinName == "ETH")		// 이더리움이체
+		{
+			sendCoinETH(_param);
+			
+		}
+		else if(_coinName == "EXC") // 익스체인이체
+		{
+			sendCoinEXC(_param);
+		}
+		else if(_coinName == "OMG") // 오미세고이체
+		{
+			AnyWearABI      = [{"constant":true,"inputs":[],"name":"name","outputs":[{"name":"","type":"string"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"name":"_spender","type":"address"},{"name":"_value","type":"uint256"}],"name":"approve","outputs":[{"name":"","type":"bool"}],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[],"name":"totalSupply","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"name":"_from","type":"address"},{"name":"_to","type":"address"},{"name":"_value","type":"uint256"}],"name":"transferFrom","outputs":[{"name":"","type":"bool"}],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[],"name":"INITIAL_SUPPLY","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[],"name":"decimals","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"name":"_value","type":"uint256"}],"name":"burn","outputs":[{"name":"","type":"bool"}],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[{"name":"_owner","type":"address"}],"name":"balanceOf","outputs":[{"name":"balance","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"name":"_from","type":"address"},{"name":"_value","type":"uint256"}],"name":"burnFrom","outputs":[{"name":"","type":"bool"}],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[],"name":"symbol","outputs":[{"name":"","type":"string"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"name":"_to","type":"address"},{"name":"_value","type":"uint256"}],"name":"transfer","outputs":[{"name":"","type":"bool"}],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[{"name":"_owner","type":"address"},{"name":"_spender","type":"address"}],"name":"allowance","outputs":[{"name":"remaining","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"inputs":[{"name":"_name","type":"string"},{"name":"_symbol","type":"string"},{"name":"_decimals","type":"uint256"}],"payable":false,"stateMutability":"nonpayable","type":"constructor"},{"anonymous":false,"inputs":[{"indexed":true,"name":"_burner","type":"address"},{"indexed":false,"name":"_value","type":"uint256"}],"name":"Burn","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"name":"owner","type":"address"},{"indexed":true,"name":"spender","type":"address"},{"indexed":false,"name":"value","type":"uint256"}],"name":"Approval","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"name":"from","type":"address"},{"indexed":true,"name":"to","type":"address"},{"indexed":false,"name":"value","type":"uint256"}],"name":"Transfer","type":"event"}];
+			contractAddress = "0x4BFBa4a8F28755Cb2061c413459EE562c6B9c51b"; 
+			AnyWear 		= web3.eth.contract(AnyWearABI).at(contractAddress); 
+			sendCoinEXC(_param);
+		}
+		else if(_coinName == "KNC") // 카이버네트워크이체
+		{
+			AnyWearABI      = [{"constant":true,"inputs":[],"name":"name","outputs":[{"name":"","type":"string"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"name":"_spender","type":"address"},{"name":"_value","type":"uint256"}],"name":"approve","outputs":[{"name":"","type":"bool"}],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[],"name":"totalSupply","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"name":"_from","type":"address"},{"name":"_to","type":"address"},{"name":"_value","type":"uint256"}],"name":"transferFrom","outputs":[{"name":"","type":"bool"}],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[],"name":"INITIAL_SUPPLY","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[],"name":"decimals","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"name":"_value","type":"uint256"}],"name":"burn","outputs":[{"name":"","type":"bool"}],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[{"name":"_owner","type":"address"}],"name":"balanceOf","outputs":[{"name":"balance","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"name":"_from","type":"address"},{"name":"_value","type":"uint256"}],"name":"burnFrom","outputs":[{"name":"","type":"bool"}],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[],"name":"symbol","outputs":[{"name":"","type":"string"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"name":"_to","type":"address"},{"name":"_value","type":"uint256"}],"name":"transfer","outputs":[{"name":"","type":"bool"}],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[{"name":"_owner","type":"address"},{"name":"_spender","type":"address"}],"name":"allowance","outputs":[{"name":"remaining","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"inputs":[{"name":"_name","type":"string"},{"name":"_symbol","type":"string"},{"name":"_decimals","type":"uint256"}],"payable":false,"stateMutability":"nonpayable","type":"constructor"},{"anonymous":false,"inputs":[{"indexed":true,"name":"_burner","type":"address"},{"indexed":false,"name":"_value","type":"uint256"}],"name":"Burn","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"name":"owner","type":"address"},{"indexed":true,"name":"spender","type":"address"},{"indexed":false,"name":"value","type":"uint256"}],"name":"Approval","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"name":"from","type":"address"},{"indexed":true,"name":"to","type":"address"},{"indexed":false,"name":"value","type":"uint256"}],"name":"Transfer","type":"event"}];
+			contractAddress = "0x4e470dc7321e84ca96fcaedd0c8abcebbaeb68c6"; 
+			AnyWear 		= web3.eth.contract(AnyWearABI).at(contractAddress); 
+			sendCoinEXC(_param);
+		}
+		else if(_coinName == "EOS") // 이오스
+		{
+			AnyWearABI      = [{"constant":true,"inputs":[],"name":"name","outputs":[{"name":"","type":"string"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"name":"_spender","type":"address"},{"name":"_value","type":"uint256"}],"name":"approve","outputs":[{"name":"","type":"bool"}],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[],"name":"totalSupply","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"name":"_from","type":"address"},{"name":"_to","type":"address"},{"name":"_value","type":"uint256"}],"name":"transferFrom","outputs":[{"name":"","type":"bool"}],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[],"name":"INITIAL_SUPPLY","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[],"name":"decimals","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"name":"_value","type":"uint256"}],"name":"burn","outputs":[{"name":"","type":"bool"}],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[{"name":"_owner","type":"address"}],"name":"balanceOf","outputs":[{"name":"balance","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"name":"_from","type":"address"},{"name":"_value","type":"uint256"}],"name":"burnFrom","outputs":[{"name":"","type":"bool"}],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[],"name":"symbol","outputs":[{"name":"","type":"string"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"name":"_to","type":"address"},{"name":"_value","type":"uint256"}],"name":"transfer","outputs":[{"name":"","type":"bool"}],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[{"name":"_owner","type":"address"},{"name":"_spender","type":"address"}],"name":"allowance","outputs":[{"name":"remaining","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"inputs":[{"name":"_name","type":"string"},{"name":"_symbol","type":"string"},{"name":"_decimals","type":"uint256"}],"payable":false,"stateMutability":"nonpayable","type":"constructor"},{"anonymous":false,"inputs":[{"indexed":true,"name":"_burner","type":"address"},{"indexed":false,"name":"_value","type":"uint256"}],"name":"Burn","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"name":"owner","type":"address"},{"indexed":true,"name":"spender","type":"address"},{"indexed":false,"name":"value","type":"uint256"}],"name":"Approval","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"name":"from","type":"address"},{"indexed":true,"name":"to","type":"address"},{"indexed":false,"name":"value","type":"uint256"}],"name":"Transfer","type":"event"}];
+			contractAddress = "0xd5b4218B950A53fF07985E2d88346925c335EAe7"; 
+			AnyWear 		= web3.eth.contract(AnyWearABI).at(contractAddress); 
+			sendCoinEXC(_param);
+		}
+		else
+		{
+			;
+		}
+		return false;
+	});
+
+	function getCoinBalance(walletAddr) {
+
+		var _ethBalance = "";
+		var _excBalance = "";
+		
+		try{
+			_ethBalance = web3.fromWei(web3.eth.getBalance(walletAddr));
+			_excBalance = AnyWear.balanceOf(walletAddr);
+		}catch(e)
+		{
+			alert(e.message);
+			return false;
+		}
+		
+		$("#ethBalance").text(_ethBalance.toNumber()   + " ETH");
+		$("#excBalance").text(_excBalance.toString(10) + " EXC");  
+
+		alert("정상적으로 조회가 완료 되었습니다.");
+	}
+	
+	function sendCoinETH(param) {
+
+		try{
+			var nonce 		= web3.eth.getTransactionCount(param._sellWalletAddr); 
+			var gasPrice 	= web3.eth.gasPrice; 
+			var value 		= web3.toWei(param._amount, 'ether'); 
+			var gasLimit    = web3.eth.estimateGas({ to: param._buyWalletAddr, from: param._sellWalletAddr, value: value });
+			var privateKey  = new ethereumjs.Buffer.Buffer.from(param._privateKey, 'hex')
+
+			var rawTx = {
+						nonce	: web3.toHex(nonce)		,
+						gasPrice: web3.toHex(gasPrice)	,
+						gasLimit: web3.toHex(gasLimit)	,
+						to		: param._buyWalletAddr	, 
+						from	: param._sellWalletAddr	, 
+						value	: web3.toHex(value)		, 
+						data	: '0x'					,
+						chainId: 3 // EIP 155 chainId - mainnet: 1, ropsten: 3
+						}
+
+			var tx = new ethereumjs.Tx(rawTx);
+			tx.sign(privateKey);
+			var serializedTx = tx.serialize();
+
+			web3.eth.sendRawTransaction('0x' + serializedTx.toString('hex'), function(err, hash) {
+			
+				if (!err)
+				{
+					alert("송금성공 \nTX : " + hash);
+					console.log(hash); 
+				}else
+				{
+					alert("송금실패 : " + err.message);
+				}
+			    
+			});
+			
+		}catch(e)
+		{
+			alert(e.message);
+			return false;
+		}		
+	}
+	var timer;
+	
+	function sendCoinEXC(param) {
+
+		try{
+			
+			var amount 		= web3.toHex(web3.toWei(param._amount, 'ether'));
+			var nonce 		= web3.eth.getTransactionCount(param._sellWalletAddr); 
+			var gasPrice 	= web3.eth.gasPrice;
+			var value 		= "0x0"; 
+			var gasLimit    = web3.eth.estimateGas({ to: param._buyWalletAddr, from: param._sellWalletAddr, value: value });
+			var data        = AnyWear.transfer.getData(param._buyWalletAddr, amount);  
+			var privateKey  = new ethereumjs.Buffer.Buffer.from(param._privateKey, 'hex');
+
+			var rawTx = {
+						nonce	: web3.toHex(nonce)			,
+						gasPrice: web3.toHex(2 * 1e9)		,
+						gasLimit: web3.toHex(210000)		,
+						//gasPrice: web3.toHex(gasPrice)		,
+						//gasLimit: web3.toHex(2 * gasLimit)	,
+						to		: contractAddress  			, 
+						from	: param._sellWalletAddr		, 
+						value	: web3.toHex(value)			, 
+						data	: data						,
+						chainId: 3 // EIP 155 chainId - mainnet: 1, ropsten: 3
+						}
+
+			var tx = new ethereumjs.Tx(rawTx);
+			tx.sign(privateKey);
+			var serializedTx = tx.serialize();
+
+			web3.eth.sendRawTransaction('0x' + serializedTx.toString('hex'), function(err, hash) {
+			
+				if (!err)
+				{
+					var trx = web3.eth.getTransaction(hash);
+					alert("전송성공 \nTX : " + hash);
+					console.log(hash); 
+					clearInterval(timer);
+					$("#resultMsg").text("전송중........");
+					timer = setInterval(function() { 
+						//getTransaction(hash)
+						getTransactionReceipt(hash)
+					}, 3000);
+				
+				}else
+				{
+					alert("전송실패 : " + err.message);
+				}
+			    
+			});
+			
+		}catch(e)
+		{
+			alert(e.message);
+			return false;
+		}		
+	}
+	
+	function getTransaction(hash) {
+
+		try{
+
+			web3.eth.getTransaction(hash, function(e, r) {
+			
+				console.info('getTransaction');
+				console.info(r);
+				
+				if(r.blockNumber == null)
+				{
+					$("#resultMsg").text("전송중........");
+					
+				}else{
+					$("#resultMsg").text("성공");
+					clearInterval(timer);
+				}
+			});
+			
+		}catch(e)
+		{
+			$("#resultMsg").text(e.message);	
+			clearInterval(timer);			
+			return false;
+		}		
+	}
+	
+	function getTransactionReceipt(hash) {
+
+		try{
+
+			web3.eth.getTransactionReceipt(hash, function(e, r) {
+			
+				console.info('getTransactionReceipt');
+				console.info(r);
+			
+				if(r == null)
+				{
+					$("#resultMsg").text("전송중........");
+					
+				}else{
+					
+					// '0x0'은 트랜잭션 실패를 나타내며 '0x1'은 트랜잭션 성공을 나타냅니다.
+					if(r.status == '0x1')
+						$("#resultMsg").text("성공 [블록넘버:"+r.blockNumber+"]");
+					else
+						$("#resultMsg").text("실패 [블록넘버:"+r.blockNumber+"]");
+						
+					clearInterval(timer);
+				}
+			});
+			
+		}catch(e)
+		{
+			$("#resultMsg").text(e.message);	
+			clearInterval(timer);			
+			return false;
+		}		
+	}
+	
+	// 트랜잭션조회 클릭 이벤트
+	$("#test").on("click", function(){
+		var txid = '0x823fa73e79b7fc2c471d132eb0a02be47f6e9db578279aaa9bc566181e3b1274';
+		
+		web3.eth.getTransaction(txid, function(e, r) {
+			console.info('getTransaction')
+			console.info(r)
+		});
+				
+				
+		web3.eth.getTransactionReceipt(txid, function(e, r) {
+			console.info('getTransactionReceipt')
+			console.info(r)
+		});
+	});
+});
+</script>
+
+<body>
+
+<form id="exchain">
+
+<h3 style="font-size:22px;padding:10px;margin-top: 30px"> 잔액조회 </h3>
+<input type="hidden"  name="excute" value="" />
+<div class="box">
+ 
+  <table style="width: 100%">
+    <tbody id="commonBody">
+  	  <tr>
+  	    <td style="width: 15%">지갑주소</td>
+  	    <td style="width: 35%"><input type="text"  name="walletAddr" value="" class="w100" /></td>
+        <td style="width: 20%"><button type="button" id="balanceOf" style="margin-left:8px"><span>잔액조회</span></button></td>
+		<!--<td style="width: 20%"><button type="button" id="test" style="margin-left:8px"><span>트랜젝션조회</span></button></td>-->
+  	    <td style="width: 30%" id="excbalanceOf"></td>
+  	  </tr>
+  	  <tr >
+  	    <td>이더리움</td>
+  	    <td id="ethBalance">ETH</td>
+  	    <td></td>
+  	    <td></td>
+  	  </tr>
+  	  <tr>
+  	    <td>익스체인</td>
+  	    <td id="excBalance">EXC</td>
+  	    <td></td>
+  	    <td></td>
+  	  </tr>
+    </tbody>
+  </table>
+  
+</div>
+
+<h3 style="font-size:22px;padding:10px;margin-top: 30px"> 토큰전송 </h3>
+
+<div class="box">
+<input type="radio" name="coin" value="ETH" checked="checked" style="margin:8px 5px 24px 3px"/> ETH(이더리움)
+<input type="radio" name="coin" value="EXC" style="margin-left:8px" /> EXC(익스체인)
+<input type="radio" name="coin" value="EOS" style="margin-left:8px" /> EOS(이오스)
+<input type="radio" name="coin" value="OMG" style="margin-left:8px" /> OMG(오미세고)
+<input type="radio" name="coin" value="KNC" style="margin-left:8px" /> KNC(카이버네트워크)
+  <table  style="width: 100%">
+    <tbody id="commonBody">
+      <tr>
+        <td style="width: 15%">보내는사람 지갑주소</td>
+        <td style="width: 35%"><input type="text"  name="sellWalletAddr" value="0x942f5A457e8cC4f132A360d16Ea48d088C9E5698" class="w100" /></td>
+        <td style="width: 50%"></td>
+      </tr>
+      <tr>
+        <td>받는사람 지갑주소</td>
+        <td><input type="text"  name="buyWalletAddr" value="0x3183c7D8570b33568E894D67Fb3893D417ec19c9" class="w100" /></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td>지갑보안키</td>
+        <td><input type="text"  name="privateKey" value="741ed8064eadea3ce16385d2ae650f62fe90323a080e14c424357415cf39942c" class="w100" /></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td>보낼금액</td>
+        <td><input type="text"  name="amount" value="" class="w100" /></td>
+        <td><button type="button" id="transfer" style="margin-left:8px"><span> 송금실행 </span></button></td>
+      </tr>
+      <tr>
+        <td>결과</td>
+        <td id="resultMsg" style="color:red"> </td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+</form>
+</body>
+</html>
+
+
+
+
