@@ -1,0 +1,188 @@
+<html lang="en">
+<head>
+	<script type="text/javascript" src="../dist/web3.js"></script>
+	<script type="text/javascript" src="../bignumber.min.js"></script>
+</head>
+<body>
+ 
+    <form method="GET" action="balanceContract.html" id="form1">
+        보내는이 : <input type="text" class="senderName" /><br />
+        받는이 : <input type="text" class="receiverName" /><br />
+        코인 : <input type="text" class="amount" /><br />
+        <input type="submit" value="보내기"/>
+    </form>
+ 
+    <form method="GET" action="balanceContract.html" id="form2">
+        주소 : <input type="text" class="addrName" /><br />
+        <input type="submit" value="금액확인" />
+        <p id="display_getCoin">확인된 금액 :: </p>
+    </form>
+ 
+    <form method="GET" action="balanceContract.html" id="form3">
+        지갑 주소 1 : <input type="text" class="saveHash_senderName" /><br />
+        지갑 주소 2 : <input type="text" class="saveHash_receiverName" /><br />
+        해시값 : <input type="text" class="saveHash" /><br />
+        <input type="submit" value="저장" />
+    </form>
+ 
+    <form method="GET" action="balanceContract.html" id="form4">
+        지갑 주소 1 : <input type="text" class="chkHash_senderName" /><br />
+        지갑 주소 2 : <input type="text" class="chkHash_receiverName" /><br />
+        해시값 : <input type="text" class="chkHash" /><br />
+        <input type="submit" value="확인" />
+        <p id="display_chkHash">해시 일치 여부</p>
+    </form>
+ 
+    <form method="GET" action="balanceContract.html" id="form5">
+        지갑 주소 1 : <input type="text" class="findHash_senderName" /><br />
+        지갑 주소 2 : <input type="text" class="findHash_receiverName" /><br />
+        <input type="submit" value="검색" />
+        <p id="display_findHash">해시 값</p>
+    </form>
+ 
+    <script>
+        // transfer Script
+		
+		
+
+		startApp();
+		   
+        var evt_transfer = document.getElementById("form1");
+        evt_transfer.onsubmit = function evt_transfer_Submit() {
+            var _senderName = document.getElementsByClassName("senderName").valueOf()[0].value;
+            var _receiverName = document.getElementsByClassName("receiverName").valueOf()[0].value;
+            var _amount = document.getElementsByClassName("amount").valueOf()[0].value;
+ 
+            if (_senderName != "" && _receiverName != "" && _amount != 0)
+                transfer(_senderName, _receiverName, _amount);
+            else
+                console.log("transfer 입력값 부족");
+ 
+            return false;
+        }
+ 
+        // getCoin Script
+        var evt_getCoin = document.getElementById("form2");
+        evt_getCoin.onsubmit = function evt_getCoin_Submit() {
+            var _addrName = document.getElementsByClassName("addrName").valueOf()[0].value;
+            
+            if (_addrName != "") {
+                getCoin(_addrName);
+            }
+            else
+                console.log("getCoin 입력값 부족");
+ 
+            return false;
+        }
+ 
+        // saveHash Script
+        var evt_saveHash = document.getElementById("form3");
+        evt_saveHash.onsubmit = function evt_saveHash_Submit() {
+            var _senderName = document.getElementsByClassName("saveHash_senderName").valueOf()[0].value;
+            var _receiverName = document.getElementsByClassName("saveHash_receiverName").valueOf()[0].value;
+            var _hash = document.getElementsByClassName("saveHash").valueOf()[0].value;
+ 
+            if (_senderName != "" && _receiverName != "" && _hash != "")
+                saveHash(_senderName, _receiverName, _hash);
+            else
+                console.log("saveHash 입력값 부족");
+ 
+            return false;
+        }
+ 
+ 
+        // checkHash Script
+        var evt_checkHash = document.getElementById("form4");
+        evt_checkHash.onsubmit = function evt_checkHash_Submit() {
+            var _senderName = document.getElementsByClassName("chkHash_senderName").valueOf()[0].value;
+            var _receiverName = document.getElementsByClassName("chkHash_receiverName").valueOf()[0].value;
+            var _hash = document.getElementsByClassName("chkHash").valueOf()[0].value;
+ 
+            if (_senderName != "" && _receiverName != "" && _hash != "")
+                checkHash(_senderName, _receiverName, _hash);
+            else
+                console.log("checkHash 입력값 부족");
+ 
+            return false;
+        }
+ 
+ 
+        // findash Script
+        var evt_findHash = document.getElementById("form5");
+        evt_findHash.onsubmit = function evt_findHash_Submit() {
+            var _senderName = document.getElementsByClassName("findHash_senderName").valueOf()[0].value;
+            var _receiverName = document.getElementsByClassName("findHash_receiverName").valueOf()[0].value;
+ 
+            if (_senderName != "" && _receiverName != "")
+                findHash(_senderName, _receiverName);
+            else
+                console.log("findHash 입력값 부족");
+ 
+            return false;
+        }
+ 
+       // AnyWear Start
+       var AnyWear;
+	
+	
+	      var web3;
+       function startApp() {
+	   
+			
+		 web3 = new Web3(new Web3.providers.HttpProvider('https://ropsten.infura.io/QWMtYHudqUPNKFVZF2nv'));
+				    
+
+	
+			var AnyWearABI = [ { "constant": true, "inputs": [], "name": "name", "outputs": [ { "name": "", "type": "string" } ], "payable": false, "stateMutability": "view", "type": "function" }, { "constant": false, "inputs": [ { "name": "_spender", "type": "address" }, { "name": "_value", "type": "uint256" } ], "name": "approve", "outputs": [ { "name": "success", "type": "bool" } ], "payable": false, "stateMutability": "nonpayable", "type": "function" }, { "constant": true, "inputs": [], "name": "totalSupply", "outputs": [ { "name": "", "type": "uint256" } ], "payable": false, "stateMutability": "view", "type": "function" }, { "constant": false, "inputs": [ { "name": "_from", "type": "address" }, { "name": "_to", "type": "address" }, { "name": "_value", "type": "uint256" } ], "name": "transferFrom", "outputs": [ { "name": "success", "type": "bool" } ], "payable": false, "stateMutability": "nonpayable", "type": "function" }, { "constant": true, "inputs": [], "name": "decimals", "outputs": [ { "name": "", "type": "uint8" } ], "payable": false, "stateMutability": "view", "type": "function" }, { "constant": false, "inputs": [ { "name": "_value", "type": "uint256" } ], "name": "burn", "outputs": [ { "name": "success", "type": "bool" } ], "payable": false, "stateMutability": "nonpayable", "type": "function" }, { "constant": true, "inputs": [ { "name": "", "type": "address" } ], "name": "balanceOf", "outputs": [ { "name": "", "type": "uint256" } ], "payable": false, "stateMutability": "view", "type": "function" }, { "constant": false, "inputs": [ { "name": "_from", "type": "address" }, { "name": "_value", "type": "uint256" } ], "name": "burnFrom", "outputs": [ { "name": "success", "type": "bool" } ], "payable": false, "stateMutability": "nonpayable", "type": "function" }, { "constant": true, "inputs": [], "name": "symbol", "outputs": [ { "name": "", "type": "string" } ], "payable": false, "stateMutability": "view", "type": "function" }, { "constant": false, "inputs": [ { "name": "_to", "type": "address" }, { "name": "_value", "type": "uint256" } ], "name": "transfer", "outputs": [ { "name": "success", "type": "bool" } ], "payable": false, "stateMutability": "nonpayable", "type": "function" }, { "constant": false, "inputs": [ { "name": "_spender", "type": "address" }, { "name": "_value", "type": "uint256" }, { "name": "_extraData", "type": "bytes" } ], "name": "approveAndCall", "outputs": [ { "name": "success", "type": "bool" } ], "payable": false, "stateMutability": "nonpayable", "type": "function" }, { "constant": true, "inputs": [ { "name": "", "type": "address" }, { "name": "", "type": "address" } ], "name": "allowance", "outputs": [ { "name": "", "type": "uint256" } ], "payable": false, "stateMutability": "view", "type": "function" }, { "inputs": [ { "name": "initialSupply", "type": "uint256", "index": 0, "typeShort": "uint", "bits": "256", "displayName": "initial Supply", "template": "elements_input_uint", "value": "100000000" }, { "name": "tokenName", "type": "string", "index": 1, "typeShort": "string", "bits": "", "displayName": "token Name", "template": "elements_input_string", "value": "EXCHAIN" }, { "name": "tokenSymbol", "type": "string", "index": 2, "typeShort": "string", "bits": "", "displayName": "token Symbol", "template": "elements_input_string", "value": "EXC" } ], "payable": false, "stateMutability": "nonpayable", "type": "constructor" }, { "anonymous": false, "inputs": [ { "indexed": true, "name": "from", "type": "address" }, { "indexed": true, "name": "to", "type": "address" }, { "indexed": false, "name": "value", "type": "uint256" } ], "name": "Transfer", "type": "event" }, { "anonymous": false, "inputs": [ { "indexed": true, "name": "_owner", "type": "address" }, { "indexed": true, "name": "_spender", "type": "address" }, { "indexed": false, "name": "_value", "type": "uint256" } ], "name": "Approval", "type": "event" }, { "anonymous": false, "inputs": [ { "indexed": true, "name": "from", "type": "address" }, { "indexed": false, "name": "value", "type": "uint256" } ], "name": "Burn", "type": "event" } ];
+			var contractAddress = "0x65fc8cc3dd6100e4f24c964d0c117805bbdbdcbd";
+
+			AnyWear = web3.eth.contract(AnyWearABI).at(contractAddress); 
+			
+			alert(3);
+
+       }
+ 
+ 
+       window.addEventListener('load', function(){
+
+           startApp();
+       })
+ 
+       
+       function transfer(_senderName, _receiverName, _amount) {
+           return AnyWear.methods.transfer(_receiverName, _amount).send({ from: _senderName }); // {from : _senderName}
+       }
+       function getCoin(_receiverName) {
+			console.info(AnyWear);
+           var ret = AnyWear.balanceOf(_receiverName);
+		   alert(ret);
+           ret.then(function (result) {
+               document.getElementById("display_getCoin").innerHTML = result;
+           })
+       }
+ 
+       function saveHash(_senderName, _receiverName, _hash) {
+           AnyWear.methods.saveHash(_senderName, _receiverName, _hash).send({ from: _senderName });
+       }
+ 
+       function checkHash(_senderName, _receiverName, _hash) {
+           var ret = AnyWear.methods.checkHash(_senderName, _receiverName, _hash).call();
+           ret.then(function (result) {
+               document.getElementById("display_chkHash").innerHTML = result;
+           })
+       }
+ 
+       function findHash(_senderName, _receiverName) {
+           var ret = AnyWear.methods.findHash(_senderName, _receiverName).call();
+           ret.then(function (result) {
+               document.getElementById("display_findHash").innerHTML = result;
+           })
+       }
+       
+    </script>
+</body>
+</html>
+
+
+
+
